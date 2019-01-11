@@ -216,7 +216,7 @@ def updated() {
     state.deviceAttributes << [ devices: 'switchLevels', attributes: ['level']]
     state.deviceAttributes << [ devices: 'tamperAlerts', attributes: ['tamper']]
     state.deviceAttributes << [ devices: 'temperatures', attributes: ['temperature']]
-    state.deviceAttributes << [ devices: 'thermostats', attributes: ['temperature','heatingSetpoint','coolingSetpoint','thermostatSetpoint','thermostatMode','thermostatFanMode','thermostatOperatingState','thermostatSetpointMode','scheduledSetpoint','optimisation','windowFunction']]
+    state.deviceAttributes << [ devices: 'thermostats', attributes: ['temperature','heatingSetpoint','coolingSetpoint','thermostatSetpoint','thermostatMode','thermostatFanMode','thermostatOperatingState','thermostatSetpointMode','scheduledSetpoint','optimisation','windowFunction', 'equipmentStatus']]
     state.deviceAttributes << [ devices: 'threeAxis', attributes: ['threeAxis']]
     state.deviceAttributes << [ devices: 'touchs', attributes: ['touch']]
     state.deviceAttributes << [ devices: 'uvs', attributes: ['ultravioletIndex']]
@@ -416,11 +416,70 @@ def handleEvent(evt) {
         valueBinary = ('off' == evt.value) ? '0i' : '1i'
         data += ",unit=${unit} value=${value},valueBinary=${valueBinary}"
     }
-    else if ('thermostatOperatingState' == evt.name) { // thermostatOperatingState: Calculate a binary value (heating = 1, <any other value> = 0)
+    else if ('thermostatOperatingState' == evt.name) { // thermostatOperatingState: Calculate a binary value (heating = 1, cooling = 2, idle = 3, <any other value> = 0)
+        switch(evt.value) {
+            case "heating":
+                valueBinary = "1i"
+                break
+            case "cooling":
+                valueBinary = "2i"
+                break
+            case "idle":
+                valueBinary = "3i"
+                break
+            default:
+                valueBinary = "0i"
+                break
+        }
         unit = 'thermostatOperatingState'
         value = '"' + value + '"'
-        valueBinary = ('heating' == evt.value) ? '1i' : '0i'
         data += ",unit=${unit} value=${value},valueBinary=${valueBinary}"
+    }
+    else if ('equipmentStatus' == evt.name) { // equipmentStatus: set values for each running component
+        // note: we only track the ones we know about for now. you may need to add new values here.
+        // Otherwise, you won't have zeroes logged for when equipment is not running.
+        unit = "equipmentStatus"
+        value = '"' + value + '"'
+        def idle = "0"
+        def heatPump = "0"
+        def heatPump2 = "0"
+        def compCool1 = "0"
+        def compCool2 = "0"
+        def auxHeat1 = "0"
+        def fan = "0"
+        def unknownValues = ""
+        if ("Idle" == evt.value) {
+            idle = "1"
+        }
+        if (evt.value.endsWith(" running")) {
+            def split = evt.value.substring(0, evt.value.length() - 8).split(",")
+            for (equipment in split) {
+                switch(equipment) {
+                    case "heatPump":
+                        heatPump = 1
+                        break
+                    case "heatPump2":
+                        heatPump2 = 1
+                        break
+                    case "compCool1":
+                        compCool1 = 1
+                        break
+                    case "compCool2":
+                        compCool2 = 1
+                        break
+                    case "fan":
+                        fan = 1
+                        break
+                    case "auxHeat1":
+                        auxHeat1 = 1
+                        break
+                    default:
+                        unknownValues += "${equipment}=1i,"
+                }
+            }
+        }
+        data += ",unit=${unit} ${unknownValues}value=${value},idle=${idle}i," +
+                "heatPump=${heatPump}i,heatPump2=${heatPump2}i,compCool1=${compCool1}i,compCool2=${compCool2}i,auxHeat1=${auxHeat1}i,fan=${fan}i"
     }
     else if ('thermostatSetpointMode' == evt.name) { // thermostatSetpointMode: Calculate a binary value (followSchedule = 0, <any other value> = 1)
         unit = 'thermostatSetpointMode'
