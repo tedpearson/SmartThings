@@ -216,7 +216,7 @@ def updated() {
     state.deviceAttributes << [ devices: 'switchLevels', attributes: ['level']]
     state.deviceAttributes << [ devices: 'tamperAlerts', attributes: ['tamper']]
     state.deviceAttributes << [ devices: 'temperatures', attributes: ['temperature']]
-    state.deviceAttributes << [ devices: 'thermostats', attributes: ['temperature','heatingSetpoint','coolingSetpoint','thermostatSetpoint','thermostatMode','thermostatFanMode','thermostatOperatingState','thermostatSetpointMode','scheduledSetpoint','optimisation','windowFunction', 'equipmentStatus']]
+    state.deviceAttributes << [ devices: 'thermostats', attributes: ['temperature','heatingSetpoint','coolingSetpoint','thermostatSetpoint','thermostatMode','thermostatFanMode','thermostatOperatingState','thermostatSetpointMode','scheduledSetpoint','optimisation','windowFunction', 'equipmentStatus', 'programScheduleName']]
     state.deviceAttributes << [ devices: 'threeAxis', attributes: ['threeAxis']]
     state.deviceAttributes << [ devices: 'touchs', attributes: ['touch']]
     state.deviceAttributes << [ devices: 'uvs', attributes: ['ultravioletIndex']]
@@ -480,6 +480,32 @@ def handleEvent(evt) {
         }
         data += ",unit=${unit} ${unknownValues}value=${value},idle=${idle}i," +
                 "heatPump=${heatPump}i,heatPump2=${heatPump2}i,compCool1=${compCool1}i,compCool2=${compCool2}i,auxHeat1=${auxHeat1}i,fan=${fan}i"
+    }
+    else if ('programScheduleName' == evt.name) {
+        unit = 'programScheduleName'
+        value = '"' + value + '"'
+        def valueModified = evt.value
+        def firstChar = evt.value.charAt(0)
+        if (firstChar >= '0' && firstChar <= '9') {
+            valueModified = "Vacation"
+        } else {
+            switch(evt.value) {
+                case "auto":
+                    valueModified = "Hold"
+                    break
+                case "Home_auto":
+                    valueModified = escapeStringForInfluxDB("Smart Home")
+                    break
+                case "Away_auto":
+                    valueModified = escapeStringForInfluxDB("Away")
+                    break
+                case "smartAway":
+                    valueModified = escapeStringForInfluxDB("Smart Away")
+                    break
+            }
+        }
+        valueModified = '"' + valueModified + '"'
+        data += ",unit=${unit} value=${value},valueModified=${valueModified}"
     }
     else if ('thermostatSetpointMode' == evt.name) { // thermostatSetpointMode: Calculate a binary value (followSchedule = 0, <any other value> = 1)
         unit = 'thermostatSetpointMode'
