@@ -448,11 +448,14 @@ def handleEvent(evt) {
         def auxHeat1 = "0"
         def fan = "0"
         def unknownValues = ""
-        if ("Idle" == evt.value) {
+        if ("idle".equalsIgnoreCase(evt.value)) {
             idle = "1"
-        }
-        if (evt.value.endsWith(" running")) {
-            def split = evt.value.substring(0, evt.value.length() - 8).split(",")
+        } else {
+            def presplit = evt.value
+            if (evt.value.endsWith(" running")) {
+                presplit = evt.value.substring(0, evt.value.length() - 8)
+            }
+            def split = presplit.split(",")
             for (equipment in split) {
                 switch(equipment) {
                     case "heatPump":
