@@ -215,7 +215,7 @@ def updated() {
 	state.deviceAttributes << [ devices: 'switches', attributes: ['switch']]
     state.deviceAttributes << [ devices: 'switchLevels', attributes: ['level']]
     state.deviceAttributes << [ devices: 'tamperAlerts', attributes: ['tamper']]
-    state.deviceAttributes << [ devices: 'temperatures', attributes: ['temperature', 'dewPoint', 'feelsLike', 'monthlyrainin', 'dailyrainin', 'winddir', 'windspeedmph', 'windgustmph']]
+    state.deviceAttributes << [ devices: 'temperatures', attributes: ['temperature', 'dewPoint', 'feelsLike', 'monthlyrainin', 'dailyrainin', 'winddir', 'windspeedmph', 'windgustmph', 'baromrelin', 'solarradiation']]
     state.deviceAttributes << [ devices: 'thermostats', attributes: ['temperature','heatingSetpoint','coolingSetpoint','thermostatSetpoint','thermostatMode','thermostatFanMode','thermostatOperatingState','thermostatSetpointMode','scheduledSetpoint','optimisation','windowFunction', 'equipmentStatus', 'currentProgramName']]
     state.deviceAttributes << [ devices: 'threeAxis', attributes: ['threeAxis']]
     state.deviceAttributes << [ devices: 'touchs', attributes: ['touch']]
@@ -486,6 +486,12 @@ def handleEvent(evt) {
         value = '"' + value + '"'
         data += ",unit=${unit} value=${value}"
     }
+    else if ('solarradiation' == evt.name) {
+        unit = 'W/m^2'
+        value = evt.value.trim().split(" ")[0]
+        value = '"' + value + '"'
+        data += ",unit=${unit} value=${value}"
+    }
     else if ('thermostatSetpointMode' == evt.name) { // thermostatSetpointMode: Calculate a binary value (followSchedule = 0, <any other value> = 1)
         unit = 'thermostatSetpointMode'
         value = '"' + value + '"'
@@ -543,7 +549,7 @@ def handleEvent(evt) {
         data += ",unit=${unit} value=${value}"
     }
     // Catch any other general numerical event (carbonDioxide, power, energy, humidity, level, temperature, ultravioletIndex, voltage, etc).
-    // also winddir, windgustmph, windspeedmph, dewPoint, monthlyrainin, dailyrainin, feelsLike
+    // also winddir, windgustmph, windspeedmph, dewPoint, monthlyrainin, dailyrainin, feelsLike, baromrelin
     else {
         data += ",unit=${unit} value=${value}"
     }
