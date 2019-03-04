@@ -492,8 +492,7 @@ def handleEvent(evt) {
     else if ('solarradiation' == evt.name) {
         unit = 'W/m^2'
         value = evt.value.trim().split(" ")[0]
-        value = '"' + value + '"'
-        data += ",unit=${unit} value=${value}"
+        data += ",unit=${unit} value=${value}i"
     }
     else if ('thermostatSetpointMode' == evt.name) { // thermostatSetpointMode: Calculate a binary value (followSchedule = 0, <any other value> = 1)
         unit = 'thermostatSetpointMode'
