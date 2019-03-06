@@ -215,7 +215,7 @@ def updated() {
 	state.deviceAttributes << [ devices: 'switches', attributes: ['switch']]
     state.deviceAttributes << [ devices: 'switchLevels', attributes: ['level']]
     state.deviceAttributes << [ devices: 'tamperAlerts', attributes: ['tamper']]
-    state.deviceAttributes << [ devices: 'temperatures', attributes: ['temperature', 'dewPoint', 'feelsLike', 'monthlyrainin', 'dailyrainin', 'winddir', 'windspeedmph', 'windgustmph', 'baromrelin', 'solarradiation']]
+    state.deviceAttributes << [ devices: 'temperatures', attributes: ['temperature', 'dewPoint_real', 'feelsLike_real', 'monthlyrainin_real', 'dailyrainin_real', 'winddir', 'windspeedmph_real', 'windgustmph_real', 'baromrelin_real', 'solarradiation_real']]
     state.deviceAttributes << [ devices: 'thermostats', attributes: ['temperature','heatingSetpoint','coolingSetpoint','thermostatSetpoint','thermostatMode','thermostatFanMode','thermostatOperatingState','thermostatSetpointMode','scheduledSetpoint','optimisation','windowFunction', 'equipmentStatus', 'currentProgramName']]
     state.deviceAttributes << [ devices: 'threeAxis', attributes: ['threeAxis']]
     state.deviceAttributes << [ devices: 'touchs', attributes: ['touch']]
@@ -283,6 +283,9 @@ def handleEvent(evt) {
     //    If value is an integer, it must have a trailing "i"
     //    If value is a string, it must be enclosed in double quotes.
     def measurement = evt.name
+    if (measurement.endsWith("_real")) {
+        measurement = measurement.substring(0, measurement.length() - 5)
+    }
     // tags:
     def deviceId = escapeStringForInfluxDB(evt.deviceId)
     def deviceName = escapeStringForInfluxDB(evt.displayName)
